@@ -7,6 +7,24 @@
 
 * nginx.conf 配置文件分为三部分：
 
+* ```nginx
+  # 首尾配置暂时忽略
+  server {  
+          # 当nginx接到请求后，会匹配其配置中的service模块
+          # 匹配方法就是将请求携带的host和port去跟配置中的server_name和listen相匹配
+          listen       8080;        
+          server_name  localhost; # 定义当前虚拟主机（站点）匹配请求的主机名
+  
+          location / {
+              root   html; # Nginx默认值
+              # 设定Nginx服务器返回的文档名
+              index  index.html index.htm; # 先找根目录下的index.html，如果没有再找index.htm
+          }
+  }
+  # 首尾配置暂时忽略
+  上面代码块的意思是：当一个请求叫做localhost:8080请求nginx服务器时，该请求就会被匹配进该代码块的 server{ } 中执行。
+  ```
+
   * 第一部分：全局块
 
     * 从配置文件开始到 events 块之间的内容，主要会设置一些影响 nginx 服务器整体运行的配置指令，主要包括配置运行 Nginx 服务器的用户（组）、允许生成的 worker process 数，进程 PID 存放路径、日志存放路径和类型以及配置文件的引入等。
@@ -35,18 +53,83 @@
     * 这算是 Nginx 服务器配置中最频繁的部分，代理、缓存和日志定义等绝大多数功能和第三方模块的配置都在这里。需要注意的是：http 块也可以包括 http 全局块、server 块。
     * http 全局块：http 全局块配置的指令包括文件引入、MIME-TYPE 定义、日志自定义、连接超时时间、单链接请求数上限等
       * upstream：负载均衡
+      
+      * ```nginx
+        # 负载均衡：设置domain
+        upstream domain {
+            server localhost:8000;
+            server localhost:8001;
+        }
+        server {  
+                listen       8080;        
+                server_name  localhost;
+        
+                location / {
+                    # root   html; # Nginx默认值
+                    # index  index.html index.htm;
+                    
+                    proxy_pass http://domain; # 负载均衡配置，请求会被平均分配到8000和8001端口
+                    proxy_set_header Host $host:$server_port;
+                }
+        }
+        ```
+        
         * 轮询（默认）：每个请求按时间顺序逐一分配到不同的后端服务器，如果后端服务器 down 掉，能自动剔除。
         * weight：weight 代表权,重默认为 1,权重越高被分配的客户端越多；指定轮询几率，weight 和访问比率成正比，用于后端服务器性能不均的情况。
         * ip_hash：每个请求按访问 ip 的 hash 结果分配，这样每个访客固定访问一个后端服务器，可以解决 session 的问题。
         * fair（第三方）：按后端服务器的响应时间来分配请求，响应时间短的优先分配。
     * server 块：这块和虚拟主机有密切关系，虚拟主机从用户角度看，和一台独立的硬件主机是完全一样的，该技术的产生是为了节省互联网服务器硬件成本。每个 http 块可以包括多个 server 块，而每个 server 块就相当于一个虚拟主机。而每个 server 块也分为全局 server 块，以及可以同时包含多个 locaton 块。
       * 全局 server 块：最常见的配置是本虚拟机主机的监听配置和本虚拟主机的名称或 IP 配置。
+    
       * location 块：一个 server 块可以配置多个 location 块。这块的主要作用是基于 Nginx 服务器接收到的请求字符串（例如 server_name/uri-string），对虚拟主机名称（也可以是 IP 别名）之外的字符串（例如 前面的 /uri-string）进行匹配，对特定的请求进行处理。地址定向、数据缓存和应答控制等功能，还有许多第三方模块的配置也在这里进行。
-        * = ：用于不含正则表达式的 uri 前，要求请求字符串与 uri 严格匹配，如果匹配成功，就停止继续向下搜索并立即处理该请求。
-        * ~：用于表示 uri 包含正则表达式，并且区分大小写。
-        * ~*：用于表示 uri 包含正则表达式，并且不区分大小写。
-        * ^~：用于不含正则表达式的 uri 前，要求 Nginx 服务器找到标识 uri 和请求字符串匹配度最高的 location 后，立即使用此 location 处理请求，而不再使用 location块中的正则 uri 和请求字符串做匹配。
-        * 注意：如果 uri 包含正则表达式，则必须要有~或者~*标识。
-      * proxy_pass：反向代理
-      * 动静分离从目前实现角度来讲大致分为两种：一种是纯粹把静态文件独立成单独的域名，放在独立的服务器上，也是目前主流推崇的方案；另外一种方法就是动态跟静态文件混合在一起发布，通过 nginx 来分开。
+    
+        = ：用于不含正则表达式的 uri 前，要求请求字符串与 uri 严格匹配，如果匹配成功，就停止继续向下搜索并立即处理该请求。
+    
+        ~：用于表示 uri 包含正则表达式，并且区分大小写。
+    
+        ~*：用于表示 uri 包含正则表达式，并且不区分大小写。
+    
+        ^~：用于不含正则表达式的 uri 前，要求 Nginx 服务器找到标识 uri 和请求字符串匹配度最高的 location 后，立即使用此 location 处理请求，而不再使用 location块中的正则 uri 和请求字符串做匹配。
+    
+        注意：如果 uri 包含正则表达式，则必须要有~或者~*标识。
+    
+        * proxy_pass：反向代理![](./Nginx/2.png)
+        
+        * ```nginx
+          server {  
+                  listen       8080;        
+                  server_name  localhost;
+          
+                  location / {
+                      root   html; # Nginx默认值
+                      index  index.html index.htm;
+                  }
+                  
+                  proxy_pass http://localhost:8000; # 反向代理配置，请求会被转发到8000端口
+          }
+          ```
+        
+        * 动静分离从目前实现角度来讲大致分为两种：一种是纯粹把静态文件独立成单独的域名，放在独立的服务器上，也是目前主流推崇的方案；另外一种方法就是动态跟静态文件混合在一起发布，通过 nginx 来分开。![](./Nginx/1.png)
+        
+        * ```nginx
+        server {  
+                listen       8080;        
+                server_name  localhost;
+        
+                location / {
+                    root   html; # Nginx默认值
+                    index  index.html index.htm;
+                }
+                
+                # 静态化配置，所有静态请求都转发给 nginx 处理，存放目录为 my-project
+                location ~ .*\.(html|htm|gif|jpg|jpeg|bmp|png|ico|js|css)$ {
+                    root /usr/local/var/www/my-project; # 静态请求所代理到的根目录
+                }
+                
+                # 动态请求匹配到path为'node'的就转发到8002端口处理
+                location /node/ {  
+                    proxy_pass http://localhost:8002; # 充当服务代理
+                }
+        }
+        
       * 通过 location 指定不同的后缀名实现不同的请求转发。通过 expires 参数设置，可以使浏览器缓存过期时间，减少与服务器之前的请求和流量。具体 Expires 定义：是给一个资源设定一个过期时间，也就是说无需去服务端验证，直接通过浏览器自身确认是否过期即可，所以不会产生额外的流量。此种方法非常适合不经常变动的资源。（如果经常更新的文件，不建议使用 Expires 来缓存），我这里设置 3d，表示在这 3 天之内访问这个 URL，发送一个请求，比对服务器该文件最后更新时间没有变化，则不会从服务器抓取，返回状态码304，如果有修改，则直接从服务器重新下载，返回状态码 200。
