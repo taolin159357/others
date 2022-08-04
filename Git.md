@@ -67,9 +67,13 @@
 
 * git提交规范：其中，Header 是必需的，Body 和 Footer 可以省略。
  > \<type\>(\<scope\>): \<subject\>
+ > <br/>
  > // 空一行
+ > <br/>
  > \<body\>
+ > <br/>
  > // 空一行
+ > <br/>
  > \<footer\>
  > 
  > type用于说明 commit 的类别，只允许使用下面7个标识。
