@@ -64,3 +64,32 @@
   git diff [历史版本][文件名]   ---》比较暂存区和工作区中内容
 
 * 要把两个不同的项目合并，git需要添加一句代码，在git pull之后， 添加--allow-unrelated-histories  告诉 git 允许不相关历史合并。假如我们的源是origin，分支是master，那么我们需要这样写 git pull origin master --allow-unrelated-histories  这个方法只解决因为两个仓库有不同的开始点，也就是两个仓库没有共同的 commit 出现的无法提交。如果还无法提交，需要看一下是不是发生了冲突，解决冲突再提交
+
+* git提交规范：其中，Header 是必需的，Body 和 Footer 可以省略。
+> <type>(<scope>): <subject>
+> // 空一行
+> <body>
+> // 空一行
+> <footer>
+> 
+> type用于说明 commit 的类别，只允许使用下面7个标识。
+> > feat：新功能（feature）
+> > fix：修补bug
+> > docs：文档（documentation）
+> > style： 格式（不影响代码运行的变动）
+> > refactor：重构（即不是新增功能，也不是修改bug的代码变动）
+> > test：增加测试
+> > chore：构建过程或辅助工具的变动
+> 
+> scope用于说明 commit 影响的范围，比如数据层、控制层、视图层等等，视项目不同而不同。
+> 
+> subject是 commit 目的的简短描述，不超过50个字符。
+> 
+> Body 部分是对本次 commit 的详细描述，可以分成多行。
+> 
+> Footer 部分只用于两种情况。
+> > 不兼容变动：如果当前代码与上一个版本不兼容，则 Footer 部分以BREAKING CHANGE开头，后面是对变动的描述、以及变动理由和迁移方法。
+> > 关闭 Issue：如果当前 commit 针对某个issue，那么可以在 Footer 部分关闭这个 issue，也可以一次关闭多个 issue
+> 
+> 还有一种特殊情况，如果当前 commit 用于撤销以前的 commit，则必须以revert:开头，后面跟着被撤销 Commit 的 Header。
+```
