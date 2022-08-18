@@ -6,6 +6,7 @@
   * 启动命令：sudo systemctl start docker
   * 添加当前用户到docker用户组：sudo usermod -aG docker $USER （需注销），newgrp docker （立即生效）
 
+* 先去注册docker hub账号密码，然后命令行docker login，docker push之前先打标签：docker tag：标记本地镜像，将其归入某一仓库，语法：docker tag [OPTIONS] 镜像id或者镜像名加tag名 dockerhub用户名/仓库名:tag名
 * Helloworld：docker run hello-world （本地没有镜像的话会自动从远端仓库pull）
 * pull nginx 镜像：docker pull nginx（等效于nginx:latest）
 * 运行：docker run -【d】（后台运行不阻塞shell） 【-p 80:80】（指定容器端口映射，外部：内部）-v(容器外目录:容器内目录) -e(环境变量key:环境变量value) --rm:用完即删
@@ -35,6 +36,27 @@
   * ADD/EXPOSE指令
   * RUN/ENV指令
   * CMD/ENTRYPOINT指令
+  ```Dockerfile
+  FROM 909336740/nginx:v1.12.2
+  USER root
+  ENV WWW /usr/share/nginx/html
+  ENV CONF /etc/nginx/conf.d
+  RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo 'Asia/Shanghai' >/etc/timezone
+  WORKDIR $WWW
+  ADD index.html $WWW/index.html
+  ADD demo.od.com.conf $CONF/demo.od.com.conf
+  EXPOSE 80
+  CMD ["nginx","-g","daemon off;"]
+
+  FROM：从哪里导入
+  USER：用什么用户起
+  ENV：设置环境变量
+  RUN： 修改时区成中国时区'Asia/Shanghai'
+  WORKDIR：指定工作目录，这里指定的是之前ENV指定的WWW 目录，即是/usr/share/nginx/html
+  ADD：添加指定的东西进去
+  EXPOSE：暴露端口
+  CMD：指令的首要目的在于为启动的容器指定默认要运行的程序，程序运行结束，容器也就结束
+  ```
   * dockerfile四种网络类型
     * Bridge contauner（NAT） 桥接式网络模式(默认)
     * None(Close) container 封闭式网络模式，不为容器配置网络
