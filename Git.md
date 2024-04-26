@@ -4,6 +4,12 @@
   * git config --global user.name yourname
   * git config --global user.email [yourname@momenta.ai](mailto:yourname@momenta.ai)
 
+* GitHub账户在2021年8月13日之后不再支持基于密码的授权方式，你需要更新你的授权方法。GitHub官方推荐用户从密码认证更改为使用令牌（token）进行身份验证。
+  * 生成个人访问令牌（Personal Access Token）：登录到你的GitHub账户，然后导航到"Settings"（设置）-> "Developer settings"（开发者设置）-> "Personal access tokens"（个人访问令牌）。在这里，你可以创建一个新的令牌。请确保为你的令牌选择一个合适的描述，并选择你需要的权限范围。然后，点击"Generate token"（生成令牌）按钮。一旦生成，你的令牌将只显示一次，所以请务必复制并妥善保存它。
+  * git config --global user.name "your_username"
+  * git config --global credential.helper store
+  * 然后，当你尝试推送到GitHub时，系统会提示你输入用户名和密码。在此处输入你的GitHub用户名和个人访问令牌。Git将保存这些凭据，以便将来使用。
+
 * 克隆到本地并且拉取代码
   1. git clone默认master分支，git clone -b QAT/dev克隆指定分支，克隆操作可以帮我们完成：初始化本地库；将远程库内容完整的克隆到本地；替我们创建远程库的别名
   2. 拉下来代码，首先切换到自己分支，没有自己分支可以用git小乌龟或git命令创建，git checkout -b tl/dev/compile origin/QAT/dev（也可以git branch tl/dev，直接生成现在指针对应分支的复制），最好一个功能一个分支，否则容易出错
